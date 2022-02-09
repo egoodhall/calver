@@ -39,6 +39,6 @@ jobs:
         with:
           script: |
             github.rest.git.deleteRef({
-              ...github.context.repo,
+              ...context.repo,
               ref: 'refs/tags${{ steps.tag.outputs.new_tag }}',
             })
