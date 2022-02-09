@@ -57,14 +57,16 @@ function getReleaseMonths() {
         .map(m => parseInt((0, moment_1.default)().month(m).format('M'), 10));
     return [...new Set(months)].sort((a, b) => a - b);
 }
+function notNull(v) {
+    return v !== null;
+}
 async function getLatestVersion() {
-    const tags = await getTags();
-    const versions = tags
+    return (await getTags())
         .filter(t => t.startsWith(getTagPrefix()))
         .map(t => t.replace(getTagPrefix(), ''))
         .map(version_1.parseVersion)
-        .filter(v => !!v);
-    return versions.length > 0 ? versions[0] : null;
+        .filter(notNull)
+        .reduce((a, b) => (a.compare(b) > 0 ? a : b), new version_1.Version(0, 0));
 }
 async function getTags() {
     const response = await getOctoKit().rest.git.listMatchingRefs({
@@ -90,10 +92,6 @@ async function run() {
             sha: gh.context.sha,
         });
     }
-    getOctoKit().rest.git.deleteRef({
-        ...gh.context.repo,
-        ref: 'refs/tags${{ steps.tag.outputs.new_tag }}',
-    });
     core.setOutput('old_tag', oldTag);
     core.setOutput('old_version', oldVer);
     core.setOutput('new_tag', newTag);
@@ -113,7 +111,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.latestReleaseMonth = exports.latestRelease = exports.nextVersion = exports.parseVersion = void 0;
+exports.latestReleaseMonth = exports.latestRelease = exports.nextVersion = exports.parseVersion = exports.Version = void 0;
 const moment_1 = __importDefault(__nccwpck_require__(7100));
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
 class Version {
@@ -131,7 +129,11 @@ class Version {
     incrementBuild() {
         return new Version(this.year, this.month, this.build + 1);
     }
+    compare(v) {
+        return this.year - v.year || this.month - v.month || this.build - v.build;
+    }
 }
+exports.Version = Version;
 function parseVersion(v) {
     const match = pat.exec(v);
     if (match === null) {
