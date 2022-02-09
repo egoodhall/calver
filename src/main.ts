@@ -37,6 +37,10 @@ function getReleaseMonths(): number[] {
   return [...new Set(months)].sort((a, b) => a - b)
 }
 
+function notNull<T>(v: T | null): v is T {
+  return v !== null
+}
+
 async function getLatestVersion(): Promise<CalendarVersion | null> {
   const tags = await getTags()
 
@@ -44,9 +48,10 @@ async function getLatestVersion(): Promise<CalendarVersion | null> {
     .filter(t => t.startsWith(getTagPrefix()))
     .map(t => t.replace(getTagPrefix(), ''))
     .map(parseVersion)
-    .filter(v => !!v)
+    .filter(notNull)
+    .sort((a, b) => a.compare(b))
 
-  return versions.length > 0 ? versions[0] : null
+  return versions.length > 0 ? versions[versions.length - 1] : null
 }
 
 async function getTags(): Promise<string[]> {

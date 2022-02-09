@@ -57,14 +57,18 @@ function getReleaseMonths() {
         .map(m => parseInt((0, moment_1.default)().month(m).format('M'), 10));
     return [...new Set(months)].sort((a, b) => a - b);
 }
+function notNull(v) {
+    return v !== null;
+}
 async function getLatestVersion() {
     const tags = await getTags();
     const versions = tags
         .filter(t => t.startsWith(getTagPrefix()))
         .map(t => t.replace(getTagPrefix(), ''))
         .map(version_1.parseVersion)
-        .filter(v => !!v);
-    return versions.length > 0 ? versions[0] : null;
+        .filter(notNull)
+        .sort((a, b) => a.compare(b));
+    return versions.length > 0 ? versions[versions.length - 1] : null;
 }
 async function getTags() {
     const response = await getOctoKit().rest.git.listMatchingRefs({
@@ -130,6 +134,9 @@ class Version {
     }
     incrementBuild() {
         return new Version(this.year, this.month, this.build + 1);
+    }
+    compare(v) {
+        return this.year - v.year || this.month - v.month || this.build - v.build;
     }
 }
 function parseVersion(v) {
