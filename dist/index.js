@@ -61,9 +61,9 @@ async function run() {
     const tags = await getTags();
     (0, moment_1.default)();
     version;
-    core.debug(`${getTag()}`);
-    core.debug(getResetMonths().join(', '));
-    core.debug(tags.join(', '));
+    core.info(`${getTag()}`);
+    core.info(getResetMonths().join(', '));
+    core.info(tags.join(', '));
     core.setOutput('old_tag', '');
     core.setOutput('old_version', '--');
     core.setOutput('new_tag', '');

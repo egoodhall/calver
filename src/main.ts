@@ -40,9 +40,9 @@ async function run(): Promise<void> {
   const tags = await getTags()
   moment()
   version
-  core.debug(`${getTag()}`)
-  core.debug(getResetMonths().join(', '))
-  core.debug(tags.join(', '))
+  core.info(`${getTag()}`)
+  core.info(getResetMonths().join(', '))
+  core.info(tags.join(', '))
 
   core.setOutput('old_tag', '')
   core.setOutput('old_version', '--')
