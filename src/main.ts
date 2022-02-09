@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
+import {Version, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
 import moment from 'moment'
 
-const version = /[0-9]+\.[0-9]+\.[0-9]+/
 const commas = /,\s+/
 
 function getTag(): boolean {
@@ -39,7 +39,15 @@ async function getTags(): Promise<string[]> {
 async function run(): Promise<void> {
   const tags = await getTags()
   moment()
-  version
+
+  const versions = tags
+    .filter(t => t.startsWith(getTagPrefix()))
+    .map(t => t.replace(getTagPrefix(), ''))
+    .map(parseVersion)
+    .filter(v => !!v)
+
+  core.info(versions.join(','))
+
   core.info(`${getTag()}`)
   core.info(getResetMonths().join(', '))
   core.info(tags.join(', '))
