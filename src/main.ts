@@ -1,14 +1,24 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
-import {nextVersion, parseVersion} from './version'
+import {CalendarVersion, nextVersion, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
+import Singleton from './singleton'
 import moment from 'moment'
 
 const commas = /,\s+/
+const octokit = new Singleton<InstanceType<typeof GitHub>>(() => {
+  const token = core.getInput('token')
+  if (!token) {
+    throw new Error(
+      "Missing 'token' input. Make sure to provide a github token."
+    )
+  }
+  return gh.getOctokit(token)
+})
 
-// function getTag(): boolean {
-//   return core.getBooleanInput('tag')
-// }
+function getApplyTag(): boolean {
+  return core.getBooleanInput('apply_tag')
+}
 
 function getTagPrefix(): string {
   return core.getInput('tag_prefix')
@@ -27,13 +37,20 @@ function getReleaseMonths(): number[] {
   return [...new Set(months)].sort((a, b) => a - b)
 }
 
-function getOctokit(): InstanceType<typeof GitHub> {
-  const token = core.getInput('token')
-  return gh.getOctokit(token)
+async function getLatestVersion(): Promise<CalendarVersion | null> {
+  const tags = await getTags()
+
+  const versions = tags
+    .filter(t => t.startsWith(getTagPrefix()))
+    .map(t => t.replace(getTagPrefix(), ''))
+    .map(parseVersion)
+    .filter(v => !!v)
+
+  return versions.length > 0 ? versions[0] : null
 }
 
 async function getTags(): Promise<string[]> {
-  const response = await getOctokit().rest.git.listMatchingRefs({
+  const response = await octokit.get().rest.git.listMatchingRefs({
     ...gh.context.repo,
     ref: getRefPrefix(),
   })
@@ -42,25 +59,30 @@ async function getTags(): Promise<string[]> {
 }
 
 async function run(): Promise<void> {
-  const tags = await getTags()
-  moment()
-
-  const versions = tags
-    .filter(t => t.startsWith(getTagPrefix()))
-    .map(t => t.replace(getTagPrefix(), ''))
-    .map(parseVersion)
-    .filter(v => !!v)
-
-  const v = versions.length > 0 ? versions[0] : null
-  core.info(`Old version: ${v?.toString()}`)
-
+  const v = await getLatestVersion()
   const nv = nextVersion(v, getReleaseMonths())
-  core.info(`New version: ${nv?.toString()}`)
 
-  core.setOutput('old_tag', '')
-  core.setOutput('old_version', '')
-  core.setOutput('new_tag', `${getTagPrefix()}${nv}`)
-  core.setOutput('new_version', `${nv}`)
+  const oldTag = v ? `${getTagPrefix()}${v?.toString()}` : ''
+  const oldVer = v?.toString() || ''
+  const newTag = `${getTagPrefix()}${nv}`
+  const newVer = `${nv}`
+
+  core.info(`Tag: ${oldTag} -> ${newTag}`)
+  core.info(`Ver: ${oldVer} -> ${newVer}`)
+
+  if (getApplyTag()) {
+    core.info(`Tagging commit ${gh.context.sha}`)
+    await octokit.get().rest.git.createRef({
+      ...gh.context.repo,
+      ref: `refs/tags/${newTag}`,
+      sha: gh.context.sha,
+    })
+  }
+
+  core.setOutput('old_tag', oldTag)
+  core.setOutput('old_version', oldVer)
+  core.setOutput('new_tag', newTag)
+  core.setOutput('new_version', newVer)
 }
 
 run()

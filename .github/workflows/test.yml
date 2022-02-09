@@ -21,7 +21,20 @@ jobs:
           pnpm install
       - run: |
           pnpm run all
-  test: # make sure the action works on a clean machine without building
+  test_tag_found: # make sure the action works on a clean machine without building
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        id: version
+        with:
+          token: ${{ github.token }}
+          tag: false
+          tag_prefix: test/v
+          release_months: |
+            July
+            January
+  test_no_tag: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -29,7 +42,7 @@ jobs:
         with:
           token: ${{ github.token }}
           tag: false
-          tag_prefix: test/v
+          tag_prefix: test-unknown/v
           release_months: |
             July
             January

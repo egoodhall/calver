@@ -32,11 +32,19 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(5924));
 const gh = __importStar(__nccwpck_require__(8262));
 const version_1 = __nccwpck_require__(4099);
+const singleton_1 = __importDefault(__nccwpck_require__(9033));
 const moment_1 = __importDefault(__nccwpck_require__(7100));
 const commas = /,\s+/;
-// function getTag(): boolean {
-//   return core.getBooleanInput('tag')
-// }
+const octokit = new singleton_1.default(() => {
+    const token = core.getInput('token');
+    if (!token) {
+        throw new Error("Missing 'token' input. Make sure to provide a github token.");
+    }
+    return gh.getOctokit(token);
+});
+function getApplyTag() {
+    return core.getBooleanInput('apply_tag');
+}
 function getTagPrefix() {
     return core.getInput('tag_prefix');
 }
@@ -50,35 +58,68 @@ function getReleaseMonths() {
         .map(m => parseInt((0, moment_1.default)().month(m).format('M'), 10));
     return [...new Set(months)].sort((a, b) => a - b);
 }
-function getOctokit() {
-    const token = core.getInput('token');
-    return gh.getOctokit(token);
+async function getLatestVersion() {
+    const tags = await getTags();
+    const versions = tags
+        .filter(t => t.startsWith(getTagPrefix()))
+        .map(t => t.replace(getTagPrefix(), ''))
+        .map(version_1.parseVersion)
+        .filter(v => !!v);
+    return versions.length > 0 ? versions[0] : null;
 }
 async function getTags() {
-    const response = await getOctokit().rest.git.listMatchingRefs({
+    const response = await octokit.get().rest.git.listMatchingRefs({
         ...gh.context.repo,
         ref: getRefPrefix(),
     });
     return response.data.map(({ ref }) => ref.replace('refs/tags/', ''));
 }
 async function run() {
-    const tags = await getTags();
-    (0, moment_1.default)();
-    const versions = tags
-        .filter(t => t.startsWith(getTagPrefix()))
-        .map(t => t.replace(getTagPrefix(), ''))
-        .map(version_1.parseVersion)
-        .filter(v => !!v);
-    const v = versions.length > 0 ? versions[0] : null;
-    core.info(`Old version: ${v === null || v === void 0 ? void 0 : v.toString()}`);
+    const v = await getLatestVersion();
     const nv = (0, version_1.nextVersion)(v, getReleaseMonths());
-    core.info(`New version: ${nv === null || nv === void 0 ? void 0 : nv.toString()}`);
-    core.setOutput('old_tag', '');
-    core.setOutput('old_version', '');
-    core.setOutput('new_tag', `${getTagPrefix()}${nv}`);
-    core.setOutput('new_version', `${nv}`);
+    const oldTag = v ? `${getTagPrefix()}${v === null || v === void 0 ? void 0 : v.toString()}` : '';
+    const oldVer = (v === null || v === void 0 ? void 0 : v.toString()) || '';
+    const newTag = `${getTagPrefix()}${nv}`;
+    const newVer = `${nv}`;
+    core.info(`Tag: ${oldTag} -> ${newTag}`);
+    core.info(`Ver: ${oldVer} -> ${newVer}`);
+    if (getApplyTag()) {
+        core.info(`Tagging commit ${gh.context.sha}`);
+        await octokit.get().rest.git.createRef({
+            ...gh.context.repo,
+            ref: `refs/tags/${newTag}`,
+            sha: gh.context.sha,
+        });
+    }
+    core.setOutput('old_tag', oldTag);
+    core.setOutput('old_version', oldVer);
+    core.setOutput('new_tag', newTag);
+    core.setOutput('new_version', newVer);
 }
 run();
+
+
+/***/ }),
+
+/***/ 9033:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+class Singleton {
+    constructor(supplier) {
+        this.value = null;
+        this.supplier = supplier;
+    }
+    get() {
+        if (this.value === null) {
+            this.value = this.supplier();
+        }
+        return this.value;
+    }
+}
+exports.default = Singleton;
 
 
 /***/ }),
