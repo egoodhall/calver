@@ -18,8 +18,11 @@ function getRefPrefix(): string {
   return `tags/${getTagPrefix()}`
 }
 
-function getResetMonths(): string[] {
-  return core.getMultilineInput('release_months').flatMap(s => s.split(commas))
+function getResetMonths(): number[] {
+  return core
+    .getMultilineInput('release_months')
+    .flatMap(s => s.split(commas))
+    .map(m => parseInt(moment().month(m).format('M'), 10))
 }
 
 function getOctokit(): InstanceType<typeof GitHub> {
@@ -49,6 +52,13 @@ async function run(): Promise<void> {
   const version = versions.length > 0 ? versions[0] : null
 
   core.info(version?.toString() || 'No version match')
+
+  if (version === null) {
+    core.setOutput('old_tag', '')
+    core.setOutput('old_version', '')
+    core.setOutput('new_tag', `${getTagPrefix()}${null}`)
+    core.setOutput('new_version', '')
+  }
 
   core.info(`${getTag()}`)
   core.info(getResetMonths().join(', '))

@@ -44,7 +44,10 @@ function getRefPrefix() {
     return `tags/${getTagPrefix()}`;
 }
 function getResetMonths() {
-    return core.getMultilineInput('release_months').flatMap(s => s.split(commas));
+    return core
+        .getMultilineInput('release_months')
+        .flatMap(s => s.split(commas))
+        .map(m => parseInt((0, moment_1.default)().month(m).format("M"), 10));
 }
 function getOctokit() {
     const token = core.getInput('token');
@@ -67,6 +70,12 @@ async function run() {
         .filter(v => !!v);
     const version = versions.length > 0 ? versions[0] : null;
     core.info((version === null || version === void 0 ? void 0 : version.toString()) || 'No version match');
+    if (version === null) {
+        core.setOutput('old_tag', '');
+        core.setOutput('old_version', '');
+        core.setOutput('new_tag', `${getTagPrefix()}${null}`);
+        core.setOutput('new_version', '');
+    }
     core.info(`${getTag()}`);
     core.info(getResetMonths().join(', '));
     core.info(tags.join(', '));
@@ -86,7 +95,7 @@ run();
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseVersion = void 0;
+exports.getCurrentVersion = exports.nextVersion = exports.parseVersion = void 0;
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
 class Version {
     constructor(year, month, build) {
@@ -107,6 +116,18 @@ function parseVersion(v) {
     return new Version(y, m, b);
 }
 exports.parseVersion = parseVersion;
+function nextVersion(v, releaseMonths) {
+    if (v === null) {
+        return getCurrentVersion(releaseMonths);
+    }
+    return null;
+}
+exports.nextVersion = nextVersion;
+function getCurrentVersion(releaseMonths) {
+    releaseMonths;
+    return null;
+}
+exports.getCurrentVersion = getCurrentVersion;
 
 
 /***/ }),

@@ -31,3 +31,20 @@ export function parseVersion(v: string): Version | null {
   const [y, m, b] = match.slice(1, 4).map(n => parseInt(n, 10))
   return new Version(y, m, b)
 }
+
+export function nextVersion(
+  v: CalendarVersion | null,
+  releaseMonths: number[]
+): Version | null {
+  if (v === null) {
+    return getCurrentVersion(releaseMonths)
+  }
+  return null
+}
+
+export function getCurrentVersion(
+  releaseMonths: number[]
+): CalendarVersion | null {
+  releaseMonths
+  return null
+}
