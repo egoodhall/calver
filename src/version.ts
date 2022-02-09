@@ -9,9 +9,10 @@ export interface CalendarVersion {
   toString(): string
   isSameRelease(v: CalendarVersion): boolean
   incrementBuild(): CalendarVersion
+  compare(v: CalendarVersion): number
 }
 
-class Version implements CalendarVersion {
+export class Version implements CalendarVersion {
   year: number
   month: number
   build: number
@@ -32,6 +33,10 @@ class Version implements CalendarVersion {
 
   incrementBuild(): CalendarVersion {
     return new Version(this.year, this.month, this.build + 1)
+  }
+
+  compare(v: CalendarVersion): number {
+    return this.year - v.year || this.month - v.month || this.build - v.build
   }
 }
 
