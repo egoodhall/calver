@@ -61,14 +61,12 @@ function notNull(v) {
     return v !== null;
 }
 async function getLatestVersion() {
-    const tags = await getTags();
-    const versions = tags
+    return (await getTags())
         .filter(t => t.startsWith(getTagPrefix()))
         .map(t => t.replace(getTagPrefix(), ''))
         .map(version_1.parseVersion)
         .filter(notNull)
-        .sort((a, b) => a.compare(b));
-    return versions.length > 0 ? versions[versions.length - 1] : null;
+        .reduce((a, b) => (a.compare(b) < 0 ? a : b), new version_1.Version(0, 0));
 }
 async function getTags() {
     const response = await getOctoKit().rest.git.listMatchingRefs({
@@ -117,7 +115,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.latestReleaseMonth = exports.latestRelease = exports.nextVersion = exports.parseVersion = void 0;
+exports.latestReleaseMonth = exports.latestRelease = exports.nextVersion = exports.parseVersion = exports.Version = void 0;
 const moment_1 = __importDefault(__nccwpck_require__(7100));
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
 class Version {
@@ -139,6 +137,7 @@ class Version {
         return this.year - v.year || this.month - v.month || this.build - v.build;
     }
 }
+exports.Version = Version;
 function parseVersion(v) {
     const match = pat.exec(v);
     if (match === null) {

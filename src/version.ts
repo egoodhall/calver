@@ -12,7 +12,7 @@ export interface CalendarVersion {
   compare(v: CalendarVersion): number
 }
 
-class Version implements CalendarVersion {
+export class Version implements CalendarVersion {
   year: number
   month: number
   build: number

@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
-import {CalendarVersion, nextVersion, parseVersion} from './version'
+import {CalendarVersion, Version, nextVersion, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
 import moment from 'moment'
 
@@ -42,16 +42,12 @@ function notNull<T>(v: T | null): v is T {
 }
 
 async function getLatestVersion(): Promise<CalendarVersion | null> {
-  const tags = await getTags()
-
-  const versions = tags
+  return (await getTags())
     .filter(t => t.startsWith(getTagPrefix()))
     .map(t => t.replace(getTagPrefix(), ''))
     .map(parseVersion)
     .filter(notNull)
-    .sort((a, b) => a.compare(b))
-
-  return versions.length > 0 ? versions[versions.length - 1] : null
+    .reduce((a, b) => (a.compare(b) < 0 ? a : b), new Version(0, 0))
 }
 
 async function getTags(): Promise<string[]> {
