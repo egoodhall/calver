@@ -80,11 +80,6 @@ async function run(): Promise<void> {
     })
   }
 
-  getOctoKit().rest.git.deleteRef({
-    ...gh.context.repo,
-    ref: 'refs/tags${{ steps.tag.outputs.new_tag }}',
-  })
-
   core.setOutput('old_tag', oldTag)
   core.setOutput('old_version', oldVer)
   core.setOutput('new_tag', newTag)
