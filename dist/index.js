@@ -31,23 +31,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(5924));
 const gh = __importStar(__nccwpck_require__(8262));
-const moment_1 = __importDefault(__nccwpck_require__(7100));
 const version_1 = __nccwpck_require__(4099);
+const moment_1 = __importDefault(__nccwpck_require__(7100));
 const commas = /,\s+/;
-function getTag() {
-    return core.getBooleanInput('tag');
-}
+// function getTag(): boolean {
+//   return core.getBooleanInput('tag')
+// }
 function getTagPrefix() {
     return core.getInput('tag_prefix');
 }
 function getRefPrefix() {
     return `tags/${getTagPrefix()}`;
 }
-function getResetMonths() {
-    return core
+function getReleaseMonths() {
+    const months = core
         .getMultilineInput('release_months')
         .flatMap(s => s.split(commas))
-        .map(m => parseInt((0, moment_1.default)().month(m).format("M"), 10));
+        .map(m => parseInt((0, moment_1.default)().month(m).format('M'), 10));
+    return [...new Set(months)].sort((a, b) => a - b);
 }
 function getOctokit() {
     const token = core.getInput('token');
@@ -70,19 +71,11 @@ async function run() {
         .filter(v => !!v);
     const version = versions.length > 0 ? versions[0] : null;
     core.info((version === null || version === void 0 ? void 0 : version.toString()) || 'No version match');
-    if (version === null) {
-        core.setOutput('old_tag', '');
-        core.setOutput('old_version', '');
-        core.setOutput('new_tag', `${getTagPrefix()}${null}`);
-        core.setOutput('new_version', '');
-    }
-    core.info(`${getTag()}`);
-    core.info(getResetMonths().join(', '));
-    core.info(tags.join(', '));
+    const nv = (0, version_1.nextVersion)(version, getReleaseMonths());
     core.setOutput('old_tag', '');
-    core.setOutput('old_version', '--');
-    core.setOutput('new_tag', '');
-    core.setOutput('new_version', '--');
+    core.setOutput('old_version', '');
+    core.setOutput('new_tag', `${getTagPrefix()}${nv}`);
+    core.setOutput('new_version', `${nv}`);
 }
 run();
 
@@ -90,21 +83,31 @@ run();
 /***/ }),
 
 /***/ 4099:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCurrentVersion = exports.nextVersion = exports.parseVersion = void 0;
+exports.latestReleaseMonth = exports.latestRelease = exports.nextVersion = exports.parseVersion = void 0;
+const moment_1 = __importDefault(__nccwpck_require__(7100));
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
 class Version {
     constructor(year, month, build) {
         this.year = year;
         this.month = month;
-        this.build = build;
+        this.build = build || 0;
     }
     toString() {
         return `${this.year}.${this.month}.${this.build}`;
+    }
+    isSameRelease(v) {
+        return this.month === v.month && this.year === v.year;
+    }
+    incrementBuild() {
+        return new Version(this.year, this.month, this.build + 1);
     }
 }
 function parseVersion(v) {
@@ -117,17 +120,29 @@ function parseVersion(v) {
 }
 exports.parseVersion = parseVersion;
 function nextVersion(v, releaseMonths) {
-    if (v === null) {
-        return getCurrentVersion(releaseMonths);
+    const lr = latestRelease(releaseMonths);
+    if (v === null || v.isSameRelease(lr)) {
+        return lr;
     }
-    return null;
+    else {
+        return v.incrementBuild();
+    }
 }
 exports.nextVersion = nextVersion;
-function getCurrentVersion(releaseMonths) {
-    releaseMonths;
-    return null;
+function latestRelease(releaseMonths) {
+    const thisMonth = parseInt((0, moment_1.default)().format('M'), 10);
+    const [month, prevYear] = latestReleaseMonth(thisMonth, releaseMonths);
+    const year = parseInt((0, moment_1.default)().format('YY'), 10) - (prevYear ? 1 : 0);
+    return new Version(year, month);
 }
-exports.getCurrentVersion = getCurrentVersion;
+exports.latestRelease = latestRelease;
+function latestReleaseMonth(thisMonth, releaseMonths) {
+    const month = releaseMonths
+        .filter(m => m <= thisMonth)
+        .reduce((m, v) => (m > v ? m : v), 0);
+    return [month || releaseMonths[releaseMonths.length - 1], month === 0];
+}
+exports.latestReleaseMonth = latestReleaseMonth;
 
 
 /***/ }),

@@ -1,14 +1,14 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
+import {nextVersion, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
 import moment from 'moment'
-import {parseVersion} from './version'
 
 const commas = /,\s+/
 
-function getTag(): boolean {
-  return core.getBooleanInput('tag')
-}
+// function getTag(): boolean {
+//   return core.getBooleanInput('tag')
+// }
 
 function getTagPrefix(): string {
   return core.getInput('tag_prefix')
@@ -18,11 +18,13 @@ function getRefPrefix(): string {
   return `tags/${getTagPrefix()}`
 }
 
-function getResetMonths(): number[] {
-  return core
+function getReleaseMonths(): number[] {
+  const months = core
     .getMultilineInput('release_months')
     .flatMap(s => s.split(commas))
     .map(m => parseInt(moment().month(m).format('M'), 10))
+
+  return [...new Set(months)].sort((a, b) => a - b)
 }
 
 function getOctokit(): InstanceType<typeof GitHub> {
@@ -53,21 +55,11 @@ async function run(): Promise<void> {
 
   core.info(version?.toString() || 'No version match')
 
-  if (version === null) {
-    core.setOutput('old_tag', '')
-    core.setOutput('old_version', '')
-    core.setOutput('new_tag', `${getTagPrefix()}${null}`)
-    core.setOutput('new_version', '')
-  }
-
-  core.info(`${getTag()}`)
-  core.info(getResetMonths().join(', '))
-  core.info(tags.join(', '))
-
+  const nv = nextVersion(version, getReleaseMonths())
   core.setOutput('old_tag', '')
-  core.setOutput('old_version', '--')
-  core.setOutput('new_tag', '')
-  core.setOutput('new_version', '--')
+  core.setOutput('old_version', '')
+  core.setOutput('new_tag', `${getTagPrefix()}${nv}`)
+  core.setOutput('new_version', `${nv}`)
 }
 
 run()
