@@ -47,7 +47,8 @@ function getResetMonths() {
     return core.getMultilineInput('release_months').flatMap(s => s.split(commas));
 }
 function getOctokit() {
-    return gh.getOctokit(core.getInput('token'), {});
+    const token = core.getInput('token');
+    return gh.getOctokit(token);
 }
 async function getTags() {
     const response = await getOctokit().rest.git.listMatchingRefs({
