@@ -51,11 +51,12 @@ async function run(): Promise<void> {
     .map(parseVersion)
     .filter(v => !!v)
 
-  const version = versions.length > 0 ? versions[0] : null
+  const v = versions.length > 0 ? versions[0] : null
+  core.info(`Old version: ${v?.toString()}`)
 
-  core.info(version?.toString() || 'No version match')
+  const nv = nextVersion(v, getReleaseMonths())
+  core.info(`New version: ${nv?.toString()}`)
 
-  const nv = nextVersion(version, getReleaseMonths())
   core.setOutput('old_tag', '')
   core.setOutput('old_version', '')
   core.setOutput('new_tag', `${getTagPrefix()}${nv}`)

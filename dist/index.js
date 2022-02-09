@@ -69,9 +69,10 @@ async function run() {
         .map(t => t.replace(getTagPrefix(), ''))
         .map(version_1.parseVersion)
         .filter(v => !!v);
-    const version = versions.length > 0 ? versions[0] : null;
-    core.info((version === null || version === void 0 ? void 0 : version.toString()) || 'No version match');
-    const nv = (0, version_1.nextVersion)(version, getReleaseMonths());
+    const v = versions.length > 0 ? versions[0] : null;
+    core.info(`Old version: ${v === null || v === void 0 ? void 0 : v.toString()}`);
+    const nv = (0, version_1.nextVersion)(v, getReleaseMonths());
+    core.info(`New version: ${nv === null || nv === void 0 ? void 0 : nv.toString()}`);
     core.setOutput('old_tag', '');
     core.setOutput('old_version', '');
     core.setOutput('new_tag', `${getTagPrefix()}${nv}`);
