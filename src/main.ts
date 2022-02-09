@@ -23,7 +23,8 @@ function getResetMonths(): string[] {
 }
 
 function getOctokit(): InstanceType<typeof GitHub> {
-  return gh.getOctokit(core.getInput('token'), {})
+  const token = core.getInput('github_token')
+  return gh.getOctokit(token)
 }
 
 async function getTags(): Promise<string[]> {
