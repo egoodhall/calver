@@ -49,7 +49,7 @@ export function nextVersion(
   releaseMonths: number[]
 ): Version | null {
   const lr = latestRelease([...releaseMonths, v?.month || 0])
-  if (v === null || v.isSameRelease(lr)) {
+  if (v === null || !v.isSameRelease(lr)) {
     return lr
   } else {
     return v.incrementBuild()

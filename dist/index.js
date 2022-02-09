@@ -122,7 +122,7 @@ function parseVersion(v) {
 exports.parseVersion = parseVersion;
 function nextVersion(v, releaseMonths) {
     const lr = latestRelease([...releaseMonths, (v === null || v === void 0 ? void 0 : v.month) || 0]);
-    if (v === null || v.isSameRelease(lr)) {
+    if (v === null || !v.isSameRelease(lr)) {
         return lr;
     }
     else {
