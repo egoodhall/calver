@@ -33,7 +33,7 @@ async function getTags(): Promise<string[]> {
     ref: getRefPrefix(),
   })
 
-  return response.data.map(({ref}) => ref)
+  return response.data.map(({ref}) => ref.replace('refs/tags/', ''))
 }
 
 async function run(): Promise<void> {

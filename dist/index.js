@@ -55,7 +55,7 @@ async function getTags() {
         ...gh.context.repo,
         ref: getRefPrefix(),
     });
-    return response.data.map(({ ref }) => ref);
+    return response.data.map(({ ref }) => ref.replace('refs/tags/', ''));
 }
 async function run() {
     const tags = await getTags();
