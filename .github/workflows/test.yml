@@ -21,7 +21,7 @@ jobs:
           pnpm install
       - run: |
           pnpm run all
-  test_tag_found: # make sure the action works on a clean machine without building
+  test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -29,20 +29,14 @@ jobs:
         id: version
         with:
           token: ${{ github.token }}
-          tag: false
           tag_prefix: test/v
           release_months: |
             July
             January
-  test_no_tag: # make sure the action works on a clean machine without building
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./
+      - uses: actions/github-script@v5
         with:
-          token: ${{ github.token }}
-          tag: false
-          tag_prefix: test-unknown/v
-          release_months: |
-            July
-            January
+          script: |
+            github.rest.git.deleteRef({
+              ...github.context.repo,
+              ref: 'refs/tags${{ steps.tag.outputs.new_tag }}',
+            })

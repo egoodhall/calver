@@ -2,11 +2,11 @@ import * as core from '@actions/core'
 import * as gh from '@actions/github'
 import {CalendarVersion, nextVersion, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
-import Singleton from './singleton'
 import moment from 'moment'
 
 const commas = /,\s+/
-const octokit = new Singleton<InstanceType<typeof GitHub>>(() => {
+
+function getOctoKit(): InstanceType<typeof GitHub> {
   const token = core.getInput('token')
   if (!token) {
     throw new Error(
@@ -14,7 +14,7 @@ const octokit = new Singleton<InstanceType<typeof GitHub>>(() => {
     )
   }
   return gh.getOctokit(token)
-})
+}
 
 function getApplyTag(): boolean {
   return core.getBooleanInput('apply_tag')
@@ -50,7 +50,7 @@ async function getLatestVersion(): Promise<CalendarVersion | null> {
 }
 
 async function getTags(): Promise<string[]> {
-  const response = await octokit.get().rest.git.listMatchingRefs({
+  const response = await getOctoKit().rest.git.listMatchingRefs({
     ...gh.context.repo,
     ref: getRefPrefix(),
   })
@@ -72,12 +72,17 @@ async function run(): Promise<void> {
 
   if (getApplyTag()) {
     core.info(`Tagging commit ${gh.context.sha}`)
-    await octokit.get().rest.git.createRef({
+    await getOctoKit().rest.git.createRef({
       ...gh.context.repo,
       ref: `refs/tags/${newTag}`,
       sha: gh.context.sha,
     })
   }
+
+  getOctoKit().rest.git.deleteRef({
+    ...gh.context.repo,
+    ref: 'refs/tags${{ steps.tag.outputs.new_tag }}',
+  })
 
   core.setOutput('old_tag', oldTag)
   core.setOutput('old_version', oldVer)

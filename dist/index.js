@@ -32,16 +32,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(5924));
 const gh = __importStar(__nccwpck_require__(8262));
 const version_1 = __nccwpck_require__(4099);
-const singleton_1 = __importDefault(__nccwpck_require__(9033));
 const moment_1 = __importDefault(__nccwpck_require__(7100));
 const commas = /,\s+/;
-const octokit = new singleton_1.default(() => {
+function getOctoKit() {
     const token = core.getInput('token');
     if (!token) {
         throw new Error("Missing 'token' input. Make sure to provide a github token.");
     }
     return gh.getOctokit(token);
-});
+}
 function getApplyTag() {
     return core.getBooleanInput('apply_tag');
 }
@@ -68,7 +67,7 @@ async function getLatestVersion() {
     return versions.length > 0 ? versions[0] : null;
 }
 async function getTags() {
-    const response = await octokit.get().rest.git.listMatchingRefs({
+    const response = await getOctoKit().rest.git.listMatchingRefs({
         ...gh.context.repo,
         ref: getRefPrefix(),
     });
@@ -85,41 +84,22 @@ async function run() {
     core.info(`Ver: ${oldVer} -> ${newVer}`);
     if (getApplyTag()) {
         core.info(`Tagging commit ${gh.context.sha}`);
-        await octokit.get().rest.git.createRef({
+        await getOctoKit().rest.git.createRef({
             ...gh.context.repo,
             ref: `refs/tags/${newTag}`,
             sha: gh.context.sha,
         });
     }
+    getOctoKit().rest.git.deleteRef({
+        ...gh.context.repo,
+        ref: 'refs/tags${{ steps.tag.outputs.new_tag }}',
+    });
     core.setOutput('old_tag', oldTag);
     core.setOutput('old_version', oldVer);
     core.setOutput('new_tag', newTag);
     core.setOutput('new_version', newVer);
 }
 run();
-
-
-/***/ }),
-
-/***/ 9033:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-class Singleton {
-    constructor(supplier) {
-        this.value = null;
-        this.supplier = supplier;
-    }
-    get() {
-        if (this.value === null) {
-            this.value = this.supplier();
-        }
-        return this.value;
-    }
-}
-exports.default = Singleton;
 
 
 /***/ }),
