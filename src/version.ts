@@ -4,6 +4,7 @@ export interface Version {
   year: number
   month: number
   build: number
+  toString(): string
 }
 
 export function parseVersion(v: string): Version | null {
@@ -15,5 +16,8 @@ export function parseVersion(v: string): Version | null {
     year: parseInt(match[1], 10),
     month: parseInt(match[2], 10),
     build: parseInt(match[3], 10),
+    toString() {
+      return `${this.year}.${this.month}.${this.build}`
+    },
   }
 }

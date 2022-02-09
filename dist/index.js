@@ -65,7 +65,8 @@ async function run() {
         .map(t => t.replace(getTagPrefix(), ''))
         .map(version_1.parseVersion)
         .filter(v => !!v);
-    core.info(versions.join(','));
+    const version = versions.length > 0 ? versions[0] : null;
+    core.info((version === null || version === void 0 ? void 0 : version.toString()) || '');
     core.info(`${getTag()}`);
     core.info(getResetMonths().join(', '));
     core.info(tags.join(', '));
@@ -96,6 +97,9 @@ function parseVersion(v) {
         year: parseInt(match[1], 10),
         month: parseInt(match[2], 10),
         build: parseInt(match[3], 10),
+        toString() {
+            return `${this.year}.${this.month}.${this.build}`;
+        },
     };
 }
 exports.parseVersion = parseVersion;

@@ -46,7 +46,9 @@ async function run(): Promise<void> {
     .map(parseVersion)
     .filter(v => !!v)
 
-  core.info(versions.join(','))
+  const version = versions.length > 0 ? versions[0] : null
+
+  core.info(version?.toString() || 'No version match')
 
   core.info(`${getTag()}`)
   core.info(getResetMonths().join(', '))
