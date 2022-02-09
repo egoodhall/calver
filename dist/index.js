@@ -66,7 +66,7 @@ async function run() {
         .map(version_1.parseVersion)
         .filter(v => !!v);
     const version = versions.length > 0 ? versions[0] : null;
-    core.info((version === null || version === void 0 ? void 0 : version.toString()) || '');
+    core.info((version === null || version === void 0 ? void 0 : version.toString()) || 'No version match');
     core.info(`${getTag()}`);
     core.info(getResetMonths().join(', '));
     core.info(tags.join(', '));
@@ -88,19 +88,23 @@ run();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseVersion = void 0;
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
+class Version {
+    constructor(year, month, build) {
+        this.year = year;
+        this.month = month;
+        this.build = build;
+    }
+    toString() {
+        return `${this.year}.${this.month}.${this.build}`;
+    }
+}
 function parseVersion(v) {
     const match = pat.exec(v);
     if (match === null) {
         return null;
     }
-    return {
-        year: parseInt(match[1], 10),
-        month: parseInt(match[2], 10),
-        build: parseInt(match[3], 10),
-        toString() {
-            return `${this.year}.${this.month}.${this.build}`;
-        },
-    };
+    const [y, m, b] = match.slice(1, 4).map(n => parseInt(n, 10));
+    return new Version(y, m, b);
 }
 exports.parseVersion = parseVersion;
 
