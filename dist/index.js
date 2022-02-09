@@ -121,7 +121,7 @@ function parseVersion(v) {
 }
 exports.parseVersion = parseVersion;
 function nextVersion(v, releaseMonths) {
-    const lr = latestRelease(releaseMonths);
+    const lr = latestRelease([...releaseMonths, (v === null || v === void 0 ? void 0 : v.month) || 0]);
     if (v === null || v.isSameRelease(lr)) {
         return lr;
     }
@@ -138,10 +138,11 @@ function latestRelease(releaseMonths) {
 }
 exports.latestRelease = latestRelease;
 function latestReleaseMonth(thisMonth, releaseMonths) {
-    const month = releaseMonths
+    const sortedRMs = [...new Set(releaseMonths)].sort((a, b) => a - b);
+    const month = sortedRMs
         .filter(m => m <= thisMonth)
         .reduce((m, v) => (m > v ? m : v), 0);
-    return [month || releaseMonths[releaseMonths.length - 1], month === 0];
+    return [month || sortedRMs[sortedRMs.length - 1], month === 0];
 }
 exports.latestReleaseMonth = latestReleaseMonth;
 

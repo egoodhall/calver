@@ -48,7 +48,7 @@ export function nextVersion(
   v: CalendarVersion | null,
   releaseMonths: number[]
 ): Version | null {
-  const lr = latestRelease(releaseMonths)
+  const lr = latestRelease([...releaseMonths, v?.month || 0])
   if (v === null || v.isSameRelease(lr)) {
     return lr
   } else {
@@ -67,8 +67,9 @@ export function latestReleaseMonth(
   thisMonth: number,
   releaseMonths: number[]
 ): [number, boolean] {
-  const month = releaseMonths
+  const sortedRMs = [...new Set(releaseMonths)].sort((a, b) => a - b)
+  const month = sortedRMs
     .filter(m => m <= thisMonth)
     .reduce((m, v) => (m > v ? m : v), 0)
-  return [month || releaseMonths[releaseMonths.length - 1], month === 0]
+  return [month || sortedRMs[sortedRMs.length - 1], month === 0]
 }

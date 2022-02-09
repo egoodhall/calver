@@ -29,7 +29,7 @@ jobs:
         with:
           token: ${{ github.token }}
           tag: false
-          tag_prefix: test/v
+          tag_prefix: test2/v
           release_months: |
             July
             January
