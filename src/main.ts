@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
-import {CalendarVersion, nextVersion, parseVersion} from './version'
+import {CalendarVersion, Version, nextVersion, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
 import moment from 'moment'
 
@@ -37,16 +37,17 @@ function getReleaseMonths(): number[] {
   return [...new Set(months)].sort((a, b) => a - b)
 }
 
-async function getLatestVersion(): Promise<CalendarVersion | null> {
-  const tags = await getTags()
+function notNull<T>(v: T | null): v is T {
+  return v !== null
+}
 
-  const versions = tags
+async function getLatestVersion(): Promise<CalendarVersion | null> {
+  return (await getTags())
     .filter(t => t.startsWith(getTagPrefix()))
     .map(t => t.replace(getTagPrefix(), ''))
     .map(parseVersion)
-    .filter(v => !!v)
-
-  return versions.length > 0 ? versions[0] : null
+    .filter(notNull)
+    .reduce((a, b) => (a.compare(b) < 0 ? a : b), new Version(0, 0))
 }
 
 async function getTags(): Promise<string[]> {
