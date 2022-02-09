@@ -66,7 +66,7 @@ async function getLatestVersion() {
         .map(t => t.replace(getTagPrefix(), ''))
         .map(version_1.parseVersion)
         .filter(notNull)
-        .reduce((a, b) => (a.compare(b) < 0 ? a : b), new version_1.Version(0, 0));
+        .reduce((a, b) => (a.compare(b) > 0 ? a : b), new version_1.Version(0, 0));
 }
 async function getTags() {
     const response = await getOctoKit().rest.git.listMatchingRefs({

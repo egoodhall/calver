@@ -47,7 +47,7 @@ async function getLatestVersion(): Promise<CalendarVersion | null> {
     .map(t => t.replace(getTagPrefix(), ''))
     .map(parseVersion)
     .filter(notNull)
-    .reduce((a, b) => (a.compare(b) < 0 ? a : b), new Version(0, 0))
+    .reduce((a, b) => (a.compare(b) > 0 ? a : b), new Version(0, 0))
 }
 
 async function getTags(): Promise<string[]> {
