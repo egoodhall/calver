@@ -1,11 +1,36 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+name: CalVer
+author: Eric Marshall
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: node16
+  main: dist/index.js
+description: Calendar based versioning
+branding:
+  color: blue
+  icon: calendar
+inputs:
+  token:
+    description: The github action token
+    required: true
+  tag:
+    description: Whether to generate a tag for the new version
+    required: false
+    default: "true"
+  tag_prefix:
+    description: "A prefix for the generated version tag"
+    required: false
+    default: "v"
+  release_months:
+    description: A comma/newline separated list of months at which the minor version segment should be incremented
+    required: false
+    default: |
+      January
+      July
+outputs:
+  old_tag:
+    description: The base tag used to generate the new version/tag
+  old_version:
+    description: The base version parsed from old_tag
+  new_tag:
+    description: The generated tag
+  new_version:
+    description: The generated version

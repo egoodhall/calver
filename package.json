@@ -25,7 +25,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.6.0"
+    "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.0",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "@jest/globals": "^27.5.1",

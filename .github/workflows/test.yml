@@ -27,4 +27,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ./
         with:
-          milliseconds: 1000
+          tag: false
+          tag_prefix: test/v
+          release_months: |
+            July
+            January

@@ -1,19 +1,52 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import * as gh from '@actions/github'
+import {GitHub} from '@actions/github/lib/utils'
+import moment from 'moment'
+
+const version = /[0-9]+\.[0-9]+\.[0-9]+/
+const commas = /,\s+/
+
+function getTag(): boolean {
+  return core.getBooleanInput('tag')
+}
+
+function getTagPrefix(): string {
+  return core.getInput('tag_prefix')
+}
+
+function getRefPrefix(): string {
+  return `tags/${getTagPrefix()}`
+}
+
+function getResetMonths(): string[] {
+  return core.getMultilineInput('release_months').flatMap(s => s.split(commas))
+}
+
+function getOctokit(): InstanceType<typeof GitHub> {
+  return gh.getOctokit(core.getInput('token'), {})
+}
+
+async function getTags(): Promise<string[]> {
+  const response = await getOctokit().rest.git.listMatchingRefs({
+    ...gh.context.repo,
+    ref: getRefPrefix(),
+  })
+
+  return response.data.map(({ref}) => ref)
+}
 
 async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+  const tags = await getTags()
+  moment()
+  version
+  core.debug(`${getTag()}`)
+  core.debug(getResetMonths().join(', '))
+  core.debug(tags.join(', '))
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
-  }
+  core.setOutput('old_tag', '')
+  core.setOutput('old_version', '--')
+  core.setOutput('new_tag', '')
+  core.setOutput('new_version', '--')
 }
 
 run()
