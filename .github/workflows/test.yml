@@ -29,11 +29,13 @@ jobs:
         id: version
         with:
           token: ${{ github.token }}
+          apply_tag: ${{ github.ref_name == 'main' }}
           tag_prefix: test/v
           release_months: |
             July
             January
       - uses: actions/github-script@v5
+        if: github.ref_name == 'main'
         with:
           script: |
             github.rest.git.deleteRef({
