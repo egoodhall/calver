@@ -32,7 +32,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(5924));
 const gh = __importStar(__nccwpck_require__(8262));
 const moment_1 = __importDefault(__nccwpck_require__(7100));
-const version = /[0-9]+\.[0-9]+\.[0-9]+/;
+const version_1 = __nccwpck_require__(4099);
 const commas = /,\s+/;
 function getTag() {
     return core.getBooleanInput('tag');
@@ -60,7 +60,12 @@ async function getTags() {
 async function run() {
     const tags = await getTags();
     (0, moment_1.default)();
-    version;
+    const versions = tags
+        .filter(t => t.startsWith(getTagPrefix()))
+        .map(t => t.replace(getTagPrefix(), ''))
+        .map(version_1.parseVersion)
+        .filter(v => !!v);
+    core.info(versions.join(','));
     core.info(`${getTag()}`);
     core.info(getResetMonths().join(', '));
     core.info(tags.join(', '));
@@ -70,6 +75,30 @@ async function run() {
     core.setOutput('new_version', '--');
 }
 run();
+
+
+/***/ }),
+
+/***/ 4099:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseVersion = void 0;
+const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
+function parseVersion(v) {
+    const match = pat.exec(v);
+    if (match === null) {
+        return null;
+    }
+    return {
+        year: parseInt(match[1], 10),
+        month: parseInt(match[2], 10),
+        build: parseInt(match[3], 10),
+    };
+}
+exports.parseVersion = parseVersion;
 
 
 /***/ }),

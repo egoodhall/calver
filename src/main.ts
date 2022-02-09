@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
-import {Version, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
 import moment from 'moment'
+import {parseVersion} from './version'
 
 const commas = /,\s+/
 

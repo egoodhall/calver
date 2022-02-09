@@ -1,4 +1,3 @@
-
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/
 
 export interface Version {
@@ -9,7 +8,7 @@ export interface Version {
 
 export function parseVersion(v: string): Version | null {
   const match = pat.exec(v)
-  if (match) {
+  if (match === null) {
     return null
   }
   return {
