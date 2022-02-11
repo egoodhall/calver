@@ -4,7 +4,7 @@ import {CalendarVersion, Version, nextVersion, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
 import moment from 'moment'
 
-const commas = /,\s+/
+const commas = /\s+,\s+/
 
 function getOctoKit(): InstanceType<typeof GitHub> {
   const token = core.getInput('token')
@@ -17,7 +17,7 @@ function getOctoKit(): InstanceType<typeof GitHub> {
 }
 
 function getApplyTag(): boolean {
-  return core.getBooleanInput('apply_tag')
+  return core.getBooleanInput('create_tag')
 }
 
 function getTagPrefix(): string {
@@ -32,6 +32,7 @@ function getReleaseMonths(): number[] {
   const months = core
     .getMultilineInput('release_months')
     .flatMap(s => s.split(commas))
+    .filter(s => s !== '')
     .map(m => parseInt(moment().month(m).format('M'), 10))
 
   return [...new Set(months)].sort((a, b) => a - b)

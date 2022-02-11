@@ -11,8 +11,8 @@ inputs:
   token:
     description: The github action token
     required: true
-  apply_tag:
-    description: Whether to apply the generated tag with the new version
+  create_tag:
+    description: Whether to create the generated tag with the new version
     required: false
     default: "true"
   tag_prefix:
