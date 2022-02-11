@@ -33,7 +33,7 @@ const core = __importStar(__nccwpck_require__(5924));
 const gh = __importStar(__nccwpck_require__(8262));
 const version_1 = __nccwpck_require__(4099);
 const moment_1 = __importDefault(__nccwpck_require__(7100));
-const commas = /,\s+/;
+const commas = /\s+,\s+/;
 function getOctoKit() {
     const token = core.getInput('token');
     if (!token) {
@@ -42,7 +42,7 @@ function getOctoKit() {
     return gh.getOctokit(token);
 }
 function getApplyTag() {
-    return core.getBooleanInput('apply_tag');
+    return core.getBooleanInput('create_tag');
 }
 function getTagPrefix() {
     return core.getInput('tag_prefix');
@@ -54,6 +54,7 @@ function getReleaseMonths() {
     const months = core
         .getMultilineInput('release_months')
         .flatMap(s => s.split(commas))
+        .filter(s => s !== '')
         .map(m => parseInt((0, moment_1.default)().month(m).format('M'), 10));
     return [...new Set(months)].sort((a, b) => a - b);
 }
