@@ -1,4 +1,4 @@
-name: CalVer
+name: Calendar Version
 author: Eric Marshall
 runs:
   using: node16
