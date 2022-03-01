@@ -10,19 +10,19 @@ test('latest release month is correct', () => {
 })
 
 test('picks next version correctly', () => {
-  expect(nextVersion(new Version(22, 1, 3), [22,3], [])).toEqual(
+  expect(nextVersion(new Version(22, 1, 3), [22, 3], [])).toEqual(
     new Version(22, 3, 0)
   )
-  expect(nextVersion(new Version(22, 1, 3), [22,3], [2])).toEqual(
+  expect(nextVersion(new Version(22, 1, 3), [22, 3], [2])).toEqual(
     new Version(22, 2, 0)
   )
-  expect(nextVersion(new Version(22, 2, 3), [22,3], [2])).toEqual(
+  expect(nextVersion(new Version(22, 2, 3), [22, 3], [2])).toEqual(
     new Version(22, 2, 4)
   )
-  expect(nextVersion(new Version(22, 2, 3), [22,3], [2])).toEqual(
+  expect(nextVersion(new Version(22, 2, 3), [22, 3], [2])).toEqual(
     new Version(22, 2, 4)
   )
-  expect(nextVersion(new Version(21, 10, 233), [22,3], [4, 10])).toEqual(
+  expect(nextVersion(new Version(21, 10, 233), [22, 3], [4, 10])).toEqual(
     new Version(21, 10, 234)
   )
 })

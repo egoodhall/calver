@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
-import {CalendarVersion, nextVersion, YearMonth} from './version'
+import {CalendarVersion, YearMonth, nextVersion} from './version'
 import {parseLatestVersion, parseMonths} from './input'
 import {GitHub} from '@actions/github/lib/utils'
 import moment from 'moment'
