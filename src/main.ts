@@ -2,9 +2,7 @@ import * as core from '@actions/core'
 import * as gh from '@actions/github'
 import {CalendarVersion, Version, nextVersion, parseVersion} from './version'
 import {GitHub} from '@actions/github/lib/utils'
-import moment from 'moment'
-
-const commas = /\s+,\s+/
+import {parseMonths} from './input'
 
 function getOctoKit(): InstanceType<typeof GitHub> {
   const token = core.getInput('token')
@@ -28,14 +26,8 @@ function getRefPrefix(): string {
   return `tags/${getTagPrefix()}`
 }
 
-function getReleaseMonths(): number[] {
-  const months = core
-    .getMultilineInput('release_months')
-    .flatMap(s => s.split(commas))
-    .filter(s => s !== '')
-    .map(m => parseInt(moment().month(m).format('M'), 10))
-
-  return [...new Set(months)].sort((a, b) => a - b)
+function getReleaseMonths(): string[] {
+  return core.getMultilineInput('release_months')
 }
 
 function notNull<T>(v: T | null): v is T {
@@ -62,7 +54,7 @@ async function getTags(): Promise<string[]> {
 
 async function run(): Promise<void> {
   const v = await getLatestVersion()
-  const nv = nextVersion(v, getReleaseMonths())
+  const nv = nextVersion(v, parseMonths(getReleaseMonths()))
 
   const oldTag = v ? `${getTagPrefix()}${v?.toString()}` : ''
   const oldVer = v?.toString() || ''
