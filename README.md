@@ -4,10 +4,10 @@ Generate a calendar version and (optionally) generate a tag for it.
 
 ### Inputs
 
-- `token` - the github token associated with the build
-- `create_tag` - whether a new tag should be created, based off the new version and tag prefix
-- `tag_prefix` - a prefix for the tag. For a prefix of `my_feature/v` a version of `22.1.3`, the generated tag would be `my_feature/v`. The prefix is also used when fetching any existing tags.
-- `release_months` - months that should trigger a new minor release, separated by newlines or commas. Months are parsed using moment.js, so `July`, `Jul`, will trigger a new minor version during July. 
+- `token` - the github token associated with the build.
+- `create_tag` - whether a new tag should be created, based off the new version and tag prefix.
+- `tag_prefix` - a prefix for the tag. For a prefix of `my_feature/v` and a version of `22.1.3`, the generated tag would be `my_feature/v22.1.3`. The prefix is also used when fetching any existing tags.
+- `release_months` - months that should trigger a new minor release, separated by newlines or commas. Months are parsed using moment.js, so `July`, `Jul`, will trigger a new minor version during July. If unspecified, the current month will be used as the minor version.
 
 ### Outputs
 

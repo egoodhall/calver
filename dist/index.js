@@ -1,6 +1,45 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 4699:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseLatestVersion = exports.parseMonths = void 0;
+const version_1 = __nccwpck_require__(4099);
+const moment_1 = __importDefault(__nccwpck_require__(7100));
+const commas = /\s*,\s*/;
+function parseMonths(lines) {
+    const months = lines
+        .flatMap(s => s.trim().split(commas))
+        .filter(s => s !== '')
+        .map(m => (0, moment_1.default)().month(m).format('M'))
+        .map(m => parseInt(m, 10))
+        .filter(m => !isNaN(m));
+    return [...new Set(months)].sort((a, b) => a - b);
+}
+exports.parseMonths = parseMonths;
+function notNull(v) {
+    return v !== null;
+}
+function parseLatestVersion(prefix, tags) {
+    return tags
+        .filter(t => t.startsWith(prefix))
+        .map(t => t.replace(prefix, ''))
+        .map(version_1.parseVersion)
+        .filter(notNull)
+        .reduce((a, b) => (a.compare(b) > 0 ? a : b), new version_1.Version(0, 0));
+}
+exports.parseLatestVersion = parseLatestVersion;
+
+
+/***/ }),
+
 /***/ 3248:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -32,8 +71,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(5924));
 const gh = __importStar(__nccwpck_require__(8262));
 const version_1 = __nccwpck_require__(4099);
+const input_1 = __nccwpck_require__(4699);
 const moment_1 = __importDefault(__nccwpck_require__(7100));
-const commas = /\s+,\s+/;
 function getOctoKit() {
     const token = core.getInput('token');
     if (!token) {
@@ -51,23 +90,16 @@ function getRefPrefix() {
     return `tags/${getTagPrefix()}`;
 }
 function getReleaseMonths() {
-    const months = core
-        .getMultilineInput('release_months')
-        .flatMap(s => s.split(commas))
-        .filter(s => s !== '')
-        .map(m => parseInt((0, moment_1.default)().month(m).format('M'), 10));
-    return [...new Set(months)].sort((a, b) => a - b);
+    return core.getMultilineInput('release_months');
 }
-function notNull(v) {
-    return v !== null;
+function getCurrentDate() {
+    return [
+        parseInt((0, moment_1.default)().format('YY'), 10),
+        parseInt((0, moment_1.default)().format('M'), 10),
+    ];
 }
 async function getLatestVersion() {
-    return (await getTags())
-        .filter(t => t.startsWith(getTagPrefix()))
-        .map(t => t.replace(getTagPrefix(), ''))
-        .map(version_1.parseVersion)
-        .filter(notNull)
-        .reduce((a, b) => (a.compare(b) > 0 ? a : b), new version_1.Version(0, 0));
+    return (0, input_1.parseLatestVersion)(getTagPrefix(), await getTags());
 }
 async function getTags() {
     const response = await getOctoKit().rest.git.listMatchingRefs({
@@ -78,7 +110,7 @@ async function getTags() {
 }
 async function run() {
     const v = await getLatestVersion();
-    const nv = (0, version_1.nextVersion)(v, getReleaseMonths());
+    const nv = (0, version_1.nextVersion)(v, getCurrentDate(), (0, input_1.parseMonths)(getReleaseMonths()));
     const oldTag = v ? `${getTagPrefix()}${v === null || v === void 0 ? void 0 : v.toString()}` : '';
     const oldVer = (v === null || v === void 0 ? void 0 : v.toString()) || '';
     const newTag = `${getTagPrefix()}${nv}`;
@@ -104,16 +136,12 @@ run();
 /***/ }),
 
 /***/ 4099:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.latestReleaseMonth = exports.latestRelease = exports.nextVersion = exports.parseVersion = exports.Version = void 0;
-const moment_1 = __importDefault(__nccwpck_require__(7100));
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
 class Version {
     constructor(year, month, build) {
@@ -144,24 +172,26 @@ function parseVersion(v) {
     return new Version(y, m, b);
 }
 exports.parseVersion = parseVersion;
-function nextVersion(v, releaseMonths) {
-    const lr = latestRelease([...releaseMonths, (v === null || v === void 0 ? void 0 : v.month) || 0]);
-    if (v === null || !v.isSameRelease(lr)) {
+function nextVersion(currentVersion, currentDate, releaseMonths) {
+    const lr = latestRelease(currentDate, releaseMonths.length === 0 ? [currentDate[1]] : releaseMonths);
+    if (currentVersion === null || !currentVersion.isSameRelease(lr)) {
         return lr;
     }
     else {
-        return v.incrementBuild();
+        return currentVersion.incrementBuild();
     }
 }
 exports.nextVersion = nextVersion;
-function latestRelease(releaseMonths) {
-    const thisMonth = parseInt((0, moment_1.default)().format('M'), 10);
-    const [month, prevYear] = latestReleaseMonth(thisMonth, releaseMonths);
-    const year = parseInt((0, moment_1.default)().format('YY'), 10) - (prevYear ? 1 : 0);
+function latestRelease(currentDate, releaseMonths) {
+    const [month, prevYear] = latestReleaseMonth(currentDate[1], releaseMonths);
+    const year = currentDate[0] - (prevYear ? 1 : 0);
     return new Version(year, month);
 }
 exports.latestRelease = latestRelease;
 function latestReleaseMonth(thisMonth, releaseMonths) {
+    if (releaseMonths.length === 0) {
+        return [thisMonth, false];
+    }
     const sortedRMs = [...new Set(releaseMonths)].sort((a, b) => a - b);
     const month = sortedRMs
         .filter(m => m <= thisMonth)

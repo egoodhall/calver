@@ -1,5 +1,3 @@
-import moment from 'moment'
-
 const pat = /([0-9]+)\.([0-9]+)\.([0-9]+)/
 
 export interface CalendarVersion {
@@ -11,6 +9,8 @@ export interface CalendarVersion {
   incrementBuild(): CalendarVersion
   compare(v: CalendarVersion): number
 }
+
+export type YearMonth = [number, number]
 
 export class Version implements CalendarVersion {
   year: number
@@ -50,21 +50,27 @@ export function parseVersion(v: string): Version | null {
 }
 
 export function nextVersion(
-  v: CalendarVersion | null,
+  currentVersion: CalendarVersion | null,
+  currentDate: YearMonth,
   releaseMonths: number[]
 ): Version | null {
-  const lr = latestRelease([...releaseMonths, v?.month || 0])
-  if (v === null || !v.isSameRelease(lr)) {
+  const lr = latestRelease(
+    currentDate,
+    releaseMonths.length === 0 ? [currentDate[1]] : releaseMonths
+  )
+  if (currentVersion === null || !currentVersion.isSameRelease(lr)) {
     return lr
   } else {
-    return v.incrementBuild()
+    return currentVersion.incrementBuild()
   }
 }
 
-export function latestRelease(releaseMonths: number[]): CalendarVersion {
-  const thisMonth = parseInt(moment().format('M'), 10)
-  const [month, prevYear] = latestReleaseMonth(thisMonth, releaseMonths)
-  const year = parseInt(moment().format('YY'), 10) - (prevYear ? 1 : 0)
+export function latestRelease(
+  currentDate: YearMonth,
+  releaseMonths: number[]
+): CalendarVersion {
+  const [month, prevYear] = latestReleaseMonth(currentDate[1], releaseMonths)
+  const year = currentDate[0] - (prevYear ? 1 : 0)
   return new Version(year, month)
 }
 
@@ -72,6 +78,9 @@ export function latestReleaseMonth(
   thisMonth: number,
   releaseMonths: number[]
 ): [number, boolean] {
+  if (releaseMonths.length === 0) {
+    return [thisMonth, false]
+  }
   const sortedRMs = [...new Set(releaseMonths)].sort((a, b) => a - b)
   const month = sortedRMs
     .filter(m => m <= thisMonth)

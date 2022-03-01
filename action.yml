@@ -22,9 +22,7 @@ inputs:
   release_months:
     description: A comma/newline separated list of months at which the minor version segment should be incremented
     required: false
-    default: |
-      January
-      July
+    default: ""
 outputs:
   old_tag:
     description: The base tag used to generate the new version/tag
