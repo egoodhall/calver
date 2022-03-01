@@ -21,7 +21,7 @@ jobs:
           pnpm install
       - run: |
           pnpm run all
-  test: # make sure the action works on a clean machine without building
+  test_specified_months:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -33,6 +33,24 @@ jobs:
           release_months: |
             July
             January
+      - run: git ls-remote --tags | grep refs/tags/${{ steps.version.outputs.new_tag }}
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.deleteRef({
+              ...context.repo,
+              ref: 'tags/${{ steps.version.outputs.new_tag }}',
+            })
+  test_unspecified_months:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        id: version
+        with:
+          token: ${{ github.token }}
+          tag_prefix: ${{ github.ref_name }}/v
+      - run: git ls-remote --tags | grep "refs/tags/${{ github.ref_name }}/v""$(date '+%Y.%m')"".0"
       - uses: actions/github-script@v6
         with:
           script: |
