@@ -72,6 +72,9 @@ export function latestReleaseMonth(
   thisMonth: number,
   releaseMonths: number[]
 ): [number, boolean] {
+  if (releaseMonths.length === 0) {
+    return [thisMonth, false]
+  }
   const sortedRMs = [...new Set(releaseMonths)].sort((a, b) => a - b)
   const month = sortedRMs
     .filter(m => m <= thisMonth)
