@@ -50,7 +50,7 @@ jobs:
         with:
           token: ${{ github.token }}
           tag_prefix: ${{ github.ref_name }}/v
-      - run: git ls-remote --tags | grep refs/tags/${{ github.ref_name }}/v$(date '+%Y.%m').0
+      - run: git ls-remote --tags | grep "refs/tags/${{ github.ref_name }}/v""$(date '+%Y.%m')"".0"
       - uses: actions/github-script@v6
         with:
           script: |

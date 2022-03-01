@@ -10,7 +10,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseMonths = void 0;
+exports.parseLatestVersion = exports.parseMonths = void 0;
+const version_1 = __nccwpck_require__(4099);
 const moment_1 = __importDefault(__nccwpck_require__(7100));
 const commas = /\s*,\s*/;
 function parseMonths(lines) {
@@ -23,6 +24,18 @@ function parseMonths(lines) {
     return [...new Set(months)].sort((a, b) => a - b);
 }
 exports.parseMonths = parseMonths;
+function notNull(v) {
+    return v !== null;
+}
+function parseLatestVersion(prefix, tags) {
+    return tags
+        .filter(t => t.startsWith(prefix))
+        .map(t => t.replace(prefix, ''))
+        .map(version_1.parseVersion)
+        .filter(notNull)
+        .reduce((a, b) => (a.compare(b) > 0 ? a : b), new version_1.Version(0, 0));
+}
+exports.parseLatestVersion = parseLatestVersion;
 
 
 /***/ }),
@@ -75,16 +88,8 @@ function getRefPrefix() {
 function getReleaseMonths() {
     return core.getMultilineInput('release_months');
 }
-function notNull(v) {
-    return v !== null;
-}
 async function getLatestVersion() {
-    return (await getTags())
-        .filter(t => t.startsWith(getTagPrefix()))
-        .map(t => t.replace(getTagPrefix(), ''))
-        .map(version_1.parseVersion)
-        .filter(notNull)
-        .reduce((a, b) => (a.compare(b) > 0 ? a : b), new version_1.Version(0, 0));
+    return (0, input_1.parseLatestVersion)(getTagPrefix(), await getTags());
 }
 async function getTags() {
     const response = await getOctoKit().rest.git.listMatchingRefs({
