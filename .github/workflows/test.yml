@@ -35,6 +35,7 @@ jobs:
             January
       - run: git ls-remote --tags | grep refs/tags/${{ steps.version.outputs.new_tag }}
       - uses: actions/github-script@v6
+        if: always() && steps.version.outcome == 'success'
         with:
           script: |
             github.rest.git.deleteRef({
@@ -50,11 +51,13 @@ jobs:
         with:
           token: ${{ github.token }}
           tag_prefix: ${{ github.ref_name }}/v
-      - run: |
-          expect="refs/tags/${{ github.ref_name }}/v""$(date '+%Y.%m')"".1"
+      - name: Expect correct tag
+        run: |
+          expect="refs/tags/${{ github.ref_name }}/v""$(date '+%y.%m')"".0"
           echo "Expecting tag '$expect' to exist"
           git ls-remote --tags | grep "$expect"
       - uses: actions/github-script@v6
+        if: always() && steps.version.outcome == 'success'
         with:
           script: |
             github.rest.git.deleteRef({
