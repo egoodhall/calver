@@ -53,7 +53,7 @@ jobs:
           tag_prefix: ${{ github.ref_name }}/v
       - name: Expect correct tag
         run: |
-          expect="refs/tags/${{ github.ref_name }}/v""$(date '+%y.%m')"".0"
+          expect="refs/tags/${{ github.ref_name }}/v""$(date '+%y.%-m')"".0"
           echo "Expecting tag '$expect' to exist"
           git ls-remote --tags | grep "$expect"
       - uses: actions/github-script@v6
