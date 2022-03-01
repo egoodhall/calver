@@ -1,6 +1,32 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 4699:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseMonths = void 0;
+const moment_1 = __importDefault(__nccwpck_require__(7100));
+const commas = /\s*,\s*/;
+function parseMonths(lines) {
+    const months = lines
+        .flatMap(s => s.trim().split(commas))
+        .filter(s => s !== '')
+        .map(m => (0, moment_1.default)().month(m).format('M'))
+        .map(m => parseInt(m, 10))
+        .filter(m => !isNaN(m));
+    return [...new Set(months)].sort((a, b) => a - b);
+}
+exports.parseMonths = parseMonths;
+
+
+/***/ }),
+
 /***/ 3248:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -25,15 +51,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(5924));
 const gh = __importStar(__nccwpck_require__(8262));
 const version_1 = __nccwpck_require__(4099);
-const moment_1 = __importDefault(__nccwpck_require__(7100));
-const commas = /\s+,\s+/;
+const input_1 = __nccwpck_require__(4699);
 function getOctoKit() {
     const token = core.getInput('token');
     if (!token) {
@@ -51,12 +73,7 @@ function getRefPrefix() {
     return `tags/${getTagPrefix()}`;
 }
 function getReleaseMonths() {
-    const months = core
-        .getMultilineInput('release_months')
-        .flatMap(s => s.split(commas))
-        .filter(s => s !== '')
-        .map(m => parseInt((0, moment_1.default)().month(m).format('M'), 10));
-    return [...new Set(months)].sort((a, b) => a - b);
+    return core.getMultilineInput('release_months');
 }
 function notNull(v) {
     return v !== null;
@@ -78,7 +95,7 @@ async function getTags() {
 }
 async function run() {
     const v = await getLatestVersion();
-    const nv = (0, version_1.nextVersion)(v, getReleaseMonths());
+    const nv = (0, version_1.nextVersion)(v, (0, input_1.parseMonths)(getReleaseMonths()));
     const oldTag = v ? `${getTagPrefix()}${v === null || v === void 0 ? void 0 : v.toString()}` : '';
     const oldVer = (v === null || v === void 0 ? void 0 : v.toString()) || '';
     const newTag = `${getTagPrefix()}${nv}`;
@@ -162,6 +179,9 @@ function latestRelease(releaseMonths) {
 }
 exports.latestRelease = latestRelease;
 function latestReleaseMonth(thisMonth, releaseMonths) {
+    if (releaseMonths.length === 0) {
+        return [thisMonth, false];
+    }
     const sortedRMs = [...new Set(releaseMonths)].sort((a, b) => a - b);
     const month = sortedRMs
         .filter(m => m <= thisMonth)
