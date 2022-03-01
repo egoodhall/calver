@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 import * as gh from '@actions/github'
-import {CalendarVersion, Version, nextVersion, parseVersion} from './version'
+import {CalendarVersion, nextVersion} from './version'
+import {parseLatestVersion, parseMonths} from './input'
 import {GitHub} from '@actions/github/lib/utils'
-import {parseMonths} from './input'
 
 function getOctoKit(): InstanceType<typeof GitHub> {
   const token = core.getInput('token')
@@ -30,17 +30,8 @@ function getReleaseMonths(): string[] {
   return core.getMultilineInput('release_months')
 }
 
-function notNull<T>(v: T | null): v is T {
-  return v !== null
-}
-
 async function getLatestVersion(): Promise<CalendarVersion | null> {
-  return (await getTags())
-    .filter(t => t.startsWith(getTagPrefix()))
-    .map(t => t.replace(getTagPrefix(), ''))
-    .map(parseVersion)
-    .filter(notNull)
-    .reduce((a, b) => (a.compare(b) > 0 ? a : b), new Version(0, 0))
+  return parseLatestVersion(getTagPrefix(), await getTags())
 }
 
 async function getTags(): Promise<string[]> {
