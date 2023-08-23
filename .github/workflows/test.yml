@@ -1,26 +1,19 @@
-name: 'build-test'
-on: # rebuild any PRs and main branch changes
-  pull_request:
-  push:
-    branches:
-      - main
-      - 'releases/*'
+name: Test
+
+on:
+  workflow_call:
 
 jobs:
-  build: # make sure build/ci work properly
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-            
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2.2.2
+      - uses: actions/setup-node@v3
         with:
-          version: latest
-
-      - run: |
-          pnpm install
-      - run: |
-          pnpm run all
+          node-version-file: .tool-versions
+          cache: 'yarn'
+      - run: yarn install --immutable
+      - run: yarn test
   test_specified_months:
     runs-on: ubuntu-latest
     steps:
